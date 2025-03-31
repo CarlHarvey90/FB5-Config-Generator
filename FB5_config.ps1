@@ -39,20 +39,58 @@ try {
     $firebirdConfig | Out-File -FilePath $outputFile -Encoding UTF8
 
     Write-Host "Firebird configuration saved to: $outputFile"
+    
+    #==========================================================================
+    ## Write the databases.conf - removed 31/03/2025
+    #==========================================================================
+    ## Extract 'configurationFirebird' from the response to build databases.conf
+    # $databaseConfig = $response.configurationDatabase
 
-    # Extract 'configurationFirebird' from the response to build databases.conf
-    $databaseConfig = $response.configurationDatabase
+    ## Define output file path in the same directory as the script
+    # $outputFile = Join-Path -Path $PSScriptRoot -ChildPath "databases.conf"
 
-    # Define output file path in the same directory as the script
-    $outputFile = Join-Path -Path $PSScriptRoot -ChildPath "databases.conf"
+    ## Write the configuration to the file
+    # $databaseConfig | Out-File -FilePath $outputFile -Encoding UTF8
 
-    # Write the configuration to the file
-    $databaseConfig | Out-File -FilePath $outputFile -Encoding UTF8
-
-    Write-Host "Databases configuration saved to: $outputFile"
-
+    # Write-Host "Databases configuration saved to: $outputFile"
+    #==========================================================================
+    
     # for quick debugging, prints response to console.
     $response | ConvertTo-Json -Depth 3  # Print JSON response
 } catch {
     Write-Host "Error: $($_.Exception.Message)"
 }
+
+# Define the file path
+$filePath = $outputFile
+
+# Read all lines from the file
+$content = Get-Content $filePath
+
+# Remove specific lines based on keywords (case-sensitive)
+$content = $content | Where-Object { 
+    $_ -notmatch "#Configuration for Firebird 5" -and
+    $_ -notmatch "#DefaultDbCachePages" -and
+    $_ -notmatch "#set DataTypeCompatibility" -and
+    $_ -notmatch "#DataTypeCompatibility" -and
+    $_ -notmatch "#WireCryptPlugin" -and
+    $_ -notmatch "#WireCompression" -and
+    $_ -notmatch "#RemoteAuxPort" -and
+    $_ -notmatch "#to check" -and
+    $_ -notmatch "#authentication plugin setup" -and
+    $_ -notmatch "#Recommendation" -and
+    $_ -notmatch "#MaxIdentifierByteLength" -and
+    $_ -notmatch "#MaxIdentifierCharLength" -and
+    $_ -notmatch "#DefaultTimeZone" -and
+    $_ -notmatch "#SnapshotsMemSize" -and
+    $_ -notmatch "#TipCacheBlockSize"
+}
+
+# Remove empty lines (trim whitespace and filter out blank entries)
+$content = $content | Where-Object { $_.Trim() -ne "" }
+
+# Write the filtered content back to the file
+$content | Set-Content $filePath
+
+Write-Host "firebird.conf has been cleaned successfully!"
+
