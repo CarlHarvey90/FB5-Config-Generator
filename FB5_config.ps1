@@ -4,7 +4,7 @@ $endpoint = "/rest/clc/calculation-params"
 $apiUrl = $baseUrl + $endpoint
 $cores =  2 #(Get-CimInstance Win32_Processor).NumberOfCores
 $ram = 20 #[math]::Ceiling((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
-$countUsers = 20
+$countUsers = 30
 
 # JSON body
 $jsonBody = @{
@@ -14,7 +14,7 @@ $jsonBody = @{
     serverArchitecture = "SuperServer"
     cores = $cores
     countUsers = $countUsers
-    sizeDb = 5
+    sizeDb = 10
     pageSize = 16384
     ram = $ram
     nameMainDb = "mainBD"
@@ -84,6 +84,25 @@ $content = $content | Where-Object {
     $_ -notmatch "#DefaultTimeZone" -and
     $_ -notmatch "#SnapshotsMemSize" -and
     $_ -notmatch "#TipCacheBlockSize"
+}
+
+# Extract the DefaultDbCachePages value from the configurationDatabase
+$defaultDbCachePages = ($response.configurationDatabase | Select-String -Pattern "DefaultDBCachePages\s*=\s*(\d+)").Matches.Groups[1].Value
+
+# Replace the DefaultDbCachePages line in the file with the new value
+$content = $content -replace "DefaultDbCachePages\s*=\s*\S+", "DefaultDbCachePages = $defaultDbCachePages"
+
+# Replace the DefaultDbCachePages line and trim any comments after it
+$content = $content -replace "^\s*DefaultDbCachePages\s*=\s*\S+.*$", "DefaultDbCachePages = $defaultDbCachePages"
+
+# Replace or modify specific lines
+$content = $content -replace "ParallelWorkers\s*=.*", "ParallelWorkers = 2 # default parallel threads"
+$content = $content -replace "AuthServer\s*=.*", "AuthServer = Srp"
+$content = $content -replace "UserManager\s*=.*", "UserManager = Srp"
+
+# Add missing lines if not present
+if ($content -notcontains "DataTypeCompatibility = 3.0") {
+    $content += "DataTypeCompatibility = 3.0"
 }
 
 # Remove empty lines (trim whitespace and filter out blank entries)
