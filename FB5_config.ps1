@@ -9,7 +9,7 @@ $countUsers = 30
 # JSON body
 $jsonBody = @{
     mailLogin = "charvey@eureka.ie"
-    passApi = "DhX1ge1754284773"
+    passApi = "123"
     serverVersion = "fb5"
     serverArchitecture = "SuperServer"
     cores = $cores
