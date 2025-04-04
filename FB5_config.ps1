@@ -2,8 +2,8 @@
 $baseUrl = "https://cc.ib-aid.com"
 $endpoint = "/rest/clc/calculation-params"
 $apiUrl = $baseUrl + $endpoint
-$cores =  2 #(Get-CimInstance Win32_Processor).NumberOfCores
-$ram = 20 #[math]::Ceiling((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+$cores =  (Get-CimInstance Win32_Processor).NumberOfCores
+$ram = [math]::Ceiling((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
 $countUsers = 30
 
 # JSON body
